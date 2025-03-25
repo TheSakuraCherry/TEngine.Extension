@@ -1068,7 +1068,9 @@ namespace Unity.HLODSystem
                     string materialPath = AssetDatabase.GUIDToAssetPath(m_hlod.MaterialGUID);
                     m_terrainMaterial = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
                     if (m_terrainMaterial == null)
-                        m_terrainMaterial = new Material(Shader.Find("Lightweight Render Pipeline/Lit-Terrain-HLOD-High"));
+                    {
+                        m_terrainMaterial = new Material(Shader.Find("Standard"));
+                    }
 
                     m_terrainMaterialInstanceId = m_terrainMaterial.GetInstanceID();
                     m_terrainMaterialName = m_terrainMaterial.name;
@@ -1076,7 +1078,9 @@ namespace Unity.HLODSystem
                     materialPath = AssetDatabase.GUIDToAssetPath(m_hlod.MaterialLowGUID);
                     m_terrainMaterialLow = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
                     if (m_terrainMaterialLow == null)
-                        m_terrainMaterialLow = new Material(Shader.Find("Lightweight Render Pipeline/Lit-Terrain-HLOD-Low"));
+                    {
+                        m_terrainMaterialLow = new Material(Shader.Find("Standard"));
+                    }
 
                     m_terrainMaterialLowInstanceId = m_terrainMaterialLow.GetInstanceID();
                     m_terrainMaterialLowName = m_terrainMaterialLow.name;
@@ -1224,8 +1228,7 @@ namespace Unity.HLODSystem
                                 }
 
                                 //controller
-                                IStreamingBuilder builder =
-                                    (IStreamingBuilder)Activator.CreateInstance(m_hlod.StreamingType,
+                                IStreamingBuilder builder = (IStreamingBuilder)Activator.CreateInstance(m_hlod.StreamingType,
                                         new object[] { m_hlod, m_hlod.StreamingOptions });
 
                                 builder.Build(rootNode, buildInfos, m_hlod.gameObject, m_hlod.CullDistance,

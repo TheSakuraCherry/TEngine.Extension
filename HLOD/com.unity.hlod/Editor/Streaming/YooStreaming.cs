@@ -70,6 +70,12 @@ namespace Unity.HLODSystem.Streaming
             m_streamingOptions = streamingOptions;
             m_controllerID = controllerID;
         }
+        
+        public YooStreaming(TerrainHLOD terrainHlod, SerializableDynamicObject streamingOptions)
+        {
+            m_manager = terrainHlod;
+            m_streamingOptions = streamingOptions;
+        }
 
         public void Build(SpaceNode rootNode, DisposableList<HLODBuildInfo> infos, GameObject root,
             float cullDistance, float lodDistance, bool writeNoPrefab, bool extractMaterial, Action<float> onProgress)

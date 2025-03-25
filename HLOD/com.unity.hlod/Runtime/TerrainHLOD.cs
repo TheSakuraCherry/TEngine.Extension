@@ -204,5 +204,12 @@ namespace Unity.HLODSystem
             return new Bounds(m_TerrainData.size * 0.5f, m_TerrainData.size);
         }
 
+        public void OnValidate()
+        {
+            if (m_TerrainData == null)
+            {
+                m_TerrainData = GetComponent<TerrainCollider>()?.terrainData;
+            }
+        }
     }
 }

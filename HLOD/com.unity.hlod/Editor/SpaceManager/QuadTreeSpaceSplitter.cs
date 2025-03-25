@@ -99,6 +99,7 @@ namespace Unity.HLODSystem.SpaceManager
             List<GameObject> targetObjects, Action<float> onProgress)
         {
             List<SpaceNode> nodes = new List<SpaceNode>();
+
             List<TargetInfo> targetInfos = CreateTargetInfoList(targetObjects, transform);
 
             if (m_useSubHLODTree == true)
@@ -211,6 +212,10 @@ namespace Unity.HLODSystem.SpaceManager
 
         private List<TargetInfo> CreateTargetInfoList(List<GameObject> gameObjects, Transform transform)
         {
+            if (gameObjects == null)
+            {
+                return new List<TargetInfo>();
+            }
             List<TargetInfo> targetInfos = new List<TargetInfo>(gameObjects.Count);
 
             for (int i = 0; i < gameObjects.Count; ++i)
