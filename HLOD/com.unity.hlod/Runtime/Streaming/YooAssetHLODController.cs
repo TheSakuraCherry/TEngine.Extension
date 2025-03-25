@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using YooAsset;
 using Object = UnityEngine.Object;
@@ -217,11 +218,19 @@ namespace Unity.HLODSystem.Streaming
             Destroy(obj);
 #endif
         }
+        
+        private static readonly Regex FileNameRegex = new Regex(
+            @".*/([^/]+)\.hlod\[([^\]]+)\]", 
+            RegexOptions.Compiled
+        );
+
+        private static readonly Regex BracketRegex = new Regex(@"\[([^]]+)\]", RegexOptions.Compiled);
 
         private LoadInfo Load(string address, Transform parent, Vector3 localPosition, Quaternion localRotation,
             Vector3 localScale, List<Action<GameObject>> callbacks)
         {
             LoadInfo loadInfo = new LoadInfo();
+            address = address.Split('/')[^1];
             loadInfo.Key = address;
 
             Action<GameObject> loadDoneAction = (obj) =>
@@ -242,8 +251,19 @@ namespace Unity.HLODSystem.Streaming
 
             if (m_customLoader == null)
             {
+                // TODO 这里需要优化，提前存储address与subgameobject。
+                // 提取文件名部分  
+                int lastSlashIndex = address.LastIndexOf('/');  
+                int dotIndex = address.LastIndexOf('.');  
+                string fileName = address.Substring(lastSlashIndex + 1, dotIndex - (lastSlashIndex + 1)); 
+                
+                // 提取方括号内容（去掉方括号）  
+                int openBracketIndex = address.IndexOf('[');  
+                int closeBracketIndex = address.IndexOf(']');  
+                string bracketContent = address.Substring(openBracketIndex + 1, closeBracketIndex - openBracketIndex - 1);  
+                
                 loadInfo.LoadFromCustom = false;
-                loadInfo.Handle = YooAssets.LoadAssetAsync<GameObject>(address);
+                loadInfo.Handle = YooAssets.LoadAssetAsync<RootData>(fileName);
                 loadInfo.Handle.Completed += handle =>
                 {
                     if (handle.Status != EOperationStatus.Succeed)
@@ -251,8 +271,11 @@ namespace Unity.HLODSystem.Streaming
                         Debug.LogError("Failed to load asset: " + address);
                         return;
                     }
+                    
+                    RootData rootData = handle.AssetObject as RootData;
+                    var ret = rootData.GetRootObject(bracketContent);
 
-                    loadDoneAction(loadInfo.Handle.AssetObject as GameObject);
+                    loadDoneAction(ret);
                 };
             }
             else
