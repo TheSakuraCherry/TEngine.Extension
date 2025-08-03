@@ -4,20 +4,23 @@ using UnityEngine;
 
 namespace GameLogic
 {
+    /// <summary>
+    /// 角色输入组件，负责处理输入事件。
+    /// </summary>
     public class CharacterInputComponent : IInputHandler
     {
         /// <summary>
-        /// 临时用，到时候请换上自己的Entity的ID
+        /// TODO: 临时用，到时候请换上自己的Entity的ID
         /// </summary>
         public int EntityID;
 
         /// <summary>
-        /// 临时用，每个角色身上的输入行为过期时间配置，到时候换上自己的
+        /// TODO: 临时用，每个角色身上的输入行为过期时间配置，到时候换上自己的
         /// </summary>
-        public Dictionary<KeyValuePair<EInputAction, EInputState>, double> PlayerInputConfig = new Dictionary<KeyValuePair<EInputAction, EInputState>, double>();
+        public readonly Dictionary<KeyValuePair<EInputAction, EInputState>, double> PlayerInputConfig = new Dictionary<KeyValuePair<EInputAction, EInputState>, double>();
 
         /// <summary>
-        /// 临时用，每个角色身上的输入行为优先级配置，到时候换上自己的
+        /// TODO: 临时用，每个角色身上的输入行为优先级配置，到时候换上自己的
         /// </summary>
         public readonly Dictionary<KeyValuePair<EInputAction, EInputState>, int> PlayerInputPriorityConfig = new Dictionary<KeyValuePair<EInputAction, EInputState>, int>();
 
@@ -27,17 +30,25 @@ namespace GameLogic
         private readonly List<InputCommand> _inputCommands = new List<InputCommand>();
 
         /// <summary>
-        /// 轴输入缓存，关于轴输入很重要的一点是，轴缓存机制与行为缓存机制不同，一般来说3C中直接接收轴的值来驱动，不需要经过layer，轴输入和行为输入是一个分界线
+        /// 轴输入缓存。
+        /// <remarks>关于轴输入很重要的一点是，轴缓存机制与行为缓存机制不同，一般来说3C中直接接收轴的值来驱动，不需要经过layer，轴输入和行为输入是一个分界线。</remarks>
         /// </summary>
         private readonly Dictionary<EInputAxis, float> _inputAxisDict = new Dictionary<EInputAxis, float>();
 
         /// <summary>
-        /// 轴输入缓存结构
+        /// 轴输入缓存。
         /// </summary>
         private struct AxisCache
         {
-            public float lastNonZeroValue; // 最后非零值
-            public float accumulateTime; // 累计时间
+            /// <summary>
+            /// 最后非零值。
+            /// </summary>
+            public float lastNonZeroValue;
+            
+            /// <summary>
+            /// 累计时间。
+            /// </summary>
+            public float accumulateTime;
 
             public AxisCache(float value, float time)
             {
@@ -46,9 +57,15 @@ namespace GameLogic
             }
         }
 
-        private Dictionary<EInputAxis, AxisCache> _inputAxisCacheDict = new Dictionary<EInputAxis, AxisCache>();
+        private readonly Dictionary<EInputAxis, AxisCache> _inputAxisCacheDict = new Dictionary<EInputAxis, AxisCache>();
         private const float AXIS_CACHE_DURATION = 0.1f; // 100毫秒缓存时间
 
+        /// <summary>
+        /// 更新轴输入缓存。
+        /// </summary>
+        /// <param name="action">输入动作枚举。</param>
+        /// <param name="state">输入状态枚举。</param>
+        /// <param name="time">输入时长。</param>
         public void HandleInputEvent(EInputAction action, EInputState state, double time)
         {
             _inputEvents.Add(new InputEvent(action, state, time));
@@ -79,6 +96,11 @@ namespace GameLogic
             }
         }
 
+        /// <summary>
+        /// 更新轴输入缓存。
+        /// </summary>
+        /// <param name="elapseSeconds">逻辑流逝时间(秒)。</param>
+        /// <param name="realElapseSeconds">真实流逝时间(秒)。</param>
         public void PostProcessInput(float elapseSeconds, float realElapseSeconds)
         {
             //更新轴输入缓存
@@ -128,6 +150,7 @@ namespace GameLogic
             ExecuteInputCommand(bestCommand);
         }
 
+        // TODO : Remark
         //每个Entity可以有多个layer来处理相同按键但是不同行为，并且可以配置layer优先级，比如按键E可以是技能可以是交互，
         //处理交互layer的优先级大于战斗layer时，一旦识别到附近有可交互物体，交互layer返回command，并跳出循环不再进行遍历
         //一个Event只能对应一个Command
@@ -171,11 +194,12 @@ namespace GameLogic
         //清理过期缓存
         private void ValidateInputCaches()
         {
-            foreach (var cache in _inputCaches)
+            for (int i = _inputCaches.Count - 1; i >= 0; i--)
             {
+                var cache = _inputCaches[i];
                 if (cache.AccumulateTime > PlayerInputConfig[new KeyValuePair<EInputAction, EInputState>(cache.Action, cache.State)])
                 {
-                    _inputCaches.Remove(cache);
+                    _inputCaches.RemoveAt(i);
                 }
             }
         }
@@ -206,14 +230,7 @@ namespace GameLogic
 
         public void HandleInputAxis(EInputAxis axis, float value)
         {
-            if (_inputAxisDict.ContainsKey(axis))
-            {
-                _inputAxisDict[axis] = value;
-            }
-            else
-            {
-                _inputAxisDict.Add(axis, value);
-            }
+            _inputAxisDict[axis] = value;
 
             // 如果输入值非零，记录到缓存中
             if (Mathf.Abs(value) > 0.001f) // 使用小阈值避免浮点精度问题
@@ -278,12 +295,7 @@ namespace GameLogic
 
         public float GetInputAxis(EInputAxis axis)
         {
-            if (_inputAxisDict.ContainsKey(axis))
-            {
-                return _inputAxisDict[axis];
-            }
-
-            return 0;
+            return _inputAxisDict.GetValueOrDefault(axis, 0);
         }
 
         public void ExecuteInputCommand(InputCommand command)
