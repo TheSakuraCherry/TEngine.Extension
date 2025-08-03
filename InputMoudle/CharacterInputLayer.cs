@@ -1,11 +1,11 @@
-namespace GameLogic{
+namespace GameLogic
+{
     public class CharacterInputLayer : IInputLayer
     {
         public int Priority => 0;
 
         public void Clear()
         {
-            
         }
 
         /// <summary>
@@ -13,7 +13,6 @@ namespace GameLogic{
         /// </summary>
         /// <returns></returns>
         /// <exception cref="System.NotImplementedException"></exception>
-
         public SInputCommand HandleHold()
         {
             throw new System.NotImplementedException();
